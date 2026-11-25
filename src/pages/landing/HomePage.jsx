@@ -63,7 +63,7 @@ function HomePage() {
             <img
               src={heroImg}
               alt="Hero illustration"
-              className="w-146px h-82.125px"
+              className="w-146 h-82.125"
             />
           </div>
         </div>
