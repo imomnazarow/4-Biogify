@@ -5,6 +5,12 @@ import flash from "../../assets/images/flash.svg";
 import secure from "../../assets/images/secure.svg";
 import setting from "../../assets/images/setting.svg";
 import WhyChooseCard from "../../components/WhyChooseCard";
+import PostCard from "../../components/PostCard";
+
+//icons
+// import { FaArrowRight } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { getPosts } from "../../api/api";
 
 const features = [
   {
@@ -28,6 +34,26 @@ const features = [
 ];
 
 function HomePage() {
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    async function loadPosts() {
+      try {
+        const data = await getPosts();
+
+        const published = data.posts
+          .filter((post) => post.status === "Published")
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        setPosts(published.slice(0, 3));
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    loadPosts();
+  }, []);
+
   return (
     <>
       <section className="bg-gradient-to-br from-indigo-50 via-violet-50 to-white">
@@ -68,8 +94,8 @@ function HomePage() {
           </div>
         </div>
       </section>
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-5xl px-6">
+      <section className="bg-white py-32">
+        <div className="mx-auto max-w-7xl px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-slate-900">
               Why Choose Blogify?
@@ -80,9 +106,37 @@ function HomePage() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-16 grid gap-8 md:grid-cols-3">
             {features.map((item) => (
               <WhyChooseCard key={item.title} {...item} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Posts */}
+      <section className="bg-slate-50 py-32">
+        <div className="mx-auto max-w-7xl px-8">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Latest Posts
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Check out our most recent articles
+              </p>
+            </div>
+            <Link
+              to="/posts"
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
+            >
+              View All →
+            </Link>
+          </div>
+
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         </div>

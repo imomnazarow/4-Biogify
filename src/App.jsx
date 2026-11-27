@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // layouts
 import PublicLayout from "./layouts/PublicLayout";
@@ -30,7 +31,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <DashboardPage /> },
       { path: "create", element: <CreatePost /> },

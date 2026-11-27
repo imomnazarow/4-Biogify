@@ -1,18 +1,36 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.svg";
 import loginImg from "../../assets/images/loginPageImg.svg";
 
+import { loginUser } from "../../api/api";
+
 function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  //
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ login: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  // const [form, setForm] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(form);
+    setError("");
+    setLoading(true);
+
+    try {
+      const data = await loginUser(form.login, form.password);
+      localStorage.setItem("token", data.token); // tokenni saqlaymiz
+      navigate("/admin");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,9 +79,9 @@ function LoginPage() {
               </label>
               <input
                 id="email"
-                type="email"
-                name="email"
-                value={form.email}
+                type="text"
+                name="login"
+                value={form.login}
                 onChange={handleChange}
                 placeholder="name@example.com"
                 required
@@ -90,11 +108,13 @@ function LoginPage() {
               />
             </div>
 
+            {error && <p className="mt-4 text-xs text-red-500">{error}</p>}
             <button
               type="submit"
-              className="mt-6 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+              disabled={loading}
+              className="mt-6 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
             >
-              Login
+              {loading ? "Loading..." : "Login"}
             </button>
 
             <p className="mt-6 text-center text-xs text-slate-500">

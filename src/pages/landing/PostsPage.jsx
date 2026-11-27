@@ -1,7 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getPosts, getCategories } from "../../api/api";
+import PostCard from "../../components/PostCard";
 
 function PostsPage() {
   const [search, setSearch] = useState("");
+  const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const postsData = await getPosts();
+        const categoriesData = await getCategories();
+
+        const published = postsData.posts.filter(
+          (post) => post.status === "Published",
+        );
+        setPosts(published);
+        setCategories(categoriesData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  //filter
+  const filteredPosts = posts.filter((post) => {
+    const matchCategory =
+      activeCategory === "All" || post.category === activeCategory;
+    const matchSearch = post.title.toLowerCase().includes(search.toLowerCase());
+    return matchCategory && matchSearch;
+  });
+
+  const tabs = ["All", ...categories.map((item) => item.name)];
 
   return (
     <>
@@ -35,8 +73,43 @@ function PostsPage() {
           </div>
         </div>
       </section>
+      //
+      <section className="mx-auto max-w-7xl px-8 py-16">
+        {/* Kategoriya tablari */}
+        <div className="flex justify-center">
+          <div className="inline-flex gap-1 rounded-xl bg-slate-100 p-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveCategory(tab)}
+                className={`rounded-lg px-5 py-1.5 text-xs font-medium transition ${
+                  activeCategory === tab
+                    ? "bg-white text-slate-900 shadow"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {/* post kartalari keyingi qadamda şu yerğa qöşiladi */}
+        {loading && (
+          <p className="mt-10 text-center text-slate-500">Loading...</p>
+        )}
+        {error && <p className="mt-10 text-center text-red-500">{error}</p>}
+
+        {!loading && !error && filteredPosts.length === 0 && (
+          <p className="mt-10 text-center text-slate-500">No posts found</p>
+        )}
+
+        {/* Kartalar */}
+        <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {filteredPosts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      </section>
     </>
   );
 }
